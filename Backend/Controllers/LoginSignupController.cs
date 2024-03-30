@@ -29,9 +29,30 @@ namespace Backend.Controllers
             _iv = new byte[16];
 
         }
+        [HttpGet("{Id}")]
+        public IActionResult GetById(int Id) {
+        
+            var client = _context.Clients.Find(Id);
+            if (client == null)
+            {
+                return NotFound();
+            }
+            return Ok(client);
+        }
+
+        [HttpGet]
+        public IActionResult Get()
+        {
+
+            var client = _context.Clients.ToList();
+            if (client == null)
+            {
+                return NotFound();
+            }
+            return Ok(client);
+        }
 
         [HttpPost("login")]
-
         public IActionResult Login([FromBody] Login login)
         {
             var user = _context.Clients.FirstOrDefault(u => u.Email == login.Email);
@@ -46,7 +67,7 @@ namespace Backend.Controllers
             }
 
             var tokenString = GenerateJwtToken(user);
-            return Ok(new { tokenString });
+            return Ok(new { tokenString,user.ClientId });
         }
 
         private string GenerateJwtToken(Client client)
@@ -158,7 +179,7 @@ namespace Backend.Controllers
        
 
         [HttpPost("forgotpassword")]
-        public IActionResult GenerateOTP([FromQuery] string email)
+        public IActionResult GenerateOTP([FromQuery] string email, string content)
         {
             string[] saAllowedCharacters = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "0" };
             string sOTP = String.Empty;
@@ -185,7 +206,7 @@ namespace Backend.Controllers
 
             MailMessage mail = new MailMessage(sender, recieve);
             mail.Subject = "Forgot password";
-            mail.Body = $"Change your password by this OTP: {sOTP}";
+            mail.Body = content;
 
             SmtpClient smtpClient = new SmtpClient("smtp.gmail.com");
             smtpClient.Port = 587;
@@ -205,6 +226,35 @@ namespace Backend.Controllers
             return Ok(new { sOTP });
         }
 
+        [HttpPost("email")]
+        public IActionResult GenerateEmail([FromQuery] string email, string content)
+        {
+            string sender = "Priyastewartjan6@gmail.com";
+            string senderPass = "uevp gqrz cfmz itce";
+            string recieve = email;
+
+            MailMessage mail = new MailMessage(sender, recieve);
+            mail.Subject = "Booking Confirmation mail";
+            mail.Body = content;
+
+            SmtpClient smtpClient = new SmtpClient("smtp.gmail.com");
+            smtpClient.Port = 587;
+            smtpClient.Credentials = new NetworkCredential(sender, senderPass);
+            smtpClient.EnableSsl = true;
+
+            try
+            {
+                smtpClient.Send(mail);
+                Console.WriteLine("Sent Successfully");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error: {e.Message}");
+            }
+
+            return Ok(new { content });
+        }
+
         [HttpPut("forgotpassword(id)")]
         public IActionResult Update(int Id, Client updatingPassword)
         {
@@ -216,7 +266,7 @@ namespace Backend.Controllers
             existingPassword.Password = updatingPassword.Password;
             existingPassword.Email = updatingPassword.Email;
 
-            _context.Clients.Add(existingPassword);
+            _context.Clients.Add(existingPassword); 
             _context.SaveChanges();
 
             return Ok(existingPassword);

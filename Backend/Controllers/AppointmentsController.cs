@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Backend.Data;
 using Backend.Models;
@@ -33,6 +28,13 @@ namespace Backend.Controllers
         public async Task<ActionResult<Appointment>> GetAppointment(int id)
         {
             var appointment = await _context.Appointments.FindAsync(id);
+            var clientid = appointment.ClientId;
+            var clients = await _context.Clients.FindAsync(clientid);
+            var serviceid = appointment.ServiceId;
+            var services = await _context.Services.FindAsync(serviceid);
+
+            appointment.Client= clients;
+            appointment.Service= services;
 
             if (appointment == null)
             {
@@ -76,8 +78,25 @@ namespace Backend.Controllers
         // POST: api/Appointments
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Appointment>> PostAppointment(Appointment appointment)
+        public async Task<ActionResult<Appointment>> PostAppointment(string name, string date, string time, long phoneNumber, string clientAge, int clientId, int serviceId)
         {
+            var client = await  _context.Clients.FindAsync(clientId);
+            var service = await _context.Services.FindAsync(serviceId);
+            if(client == null || service == null)
+            {
+                return NotFound("Data not found");
+            }
+            var appointment = new Appointment
+            {
+                Name = name,
+                Date = date,
+                Time = time,
+                PhoneNumber = phoneNumber,
+               
+                ClientAge = clientAge,
+                ServiceId = serviceId,
+                ClientId = clientId
+            };
             _context.Appointments.Add(appointment);
             await _context.SaveChangesAsync();
 

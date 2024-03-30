@@ -1,40 +1,34 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Backend.Models;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
-namespace Backend.Models
+namespace Backend.DTOs
 {
-    public class Appointment
+    public class AppointmentDTO
     {
         [Key]
         public int AppointmentId { get; set; }
 
         public string? Name { get; set; }
 
-        public string? Date { get; set; }
+        public DateOnly Date { get; set; }
 
-        public string? Time { get; set; }
+        public TimeOnly Time { get; set; }
 
         public long PhoneNumber { get; set; }
 
-  
+        public string? Allergyspecification { get; set; }
 
         public string? ClientAge { get; set; }
 
         public int ClientId { get; set; }
 
         [ForeignKey("ClientId")]
-        public Client? Client {  get; set; }
-
+        public Client? Client { get; set; }
 
         public int ServiceId { get; set; }
 
         [ForeignKey("ServiceId")]
         public Service? Service { get; set; }
-
-      
-
-
-
-
     }
 }
